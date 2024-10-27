@@ -47,8 +47,12 @@ def get_user_by_id(
     user = crud_user.get(db, id=user_id)
     if not user:
         raise HTTPException(
-            status_code=404,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "User not found",
+                "code": 404,
+                "message": "The user with the provided id does not exist."
+            }
         )
     return user
 
@@ -64,5 +68,48 @@ def search_users(
     """
     users = crud_user.search(db, query=query, skip=skip, limit=limit)
     return users
+
+@router.put("/{id}", response_model=UserResponse)
+def update_user(
+    id: int,
+    user_in: UserCreate,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    Update user information.
+    """
+    user = crud_user.get(db, id=id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "User not found",
+                "code": 404,
+                "message": "The user with the provided id does not exist."
+            }
+        )
+    user = crud_user.update(db, db_obj=user, obj_in=user_in)
+    return user
+
+@router.delete("/{id}", response_model=UserResponse)
+def delete_user(
+    id: int,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    Delete a user by id.
+    """
+    user = crud_user.get(db, id=id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "User not found",
+                "code": 404,
+                "message": "The user with the provided id does not exist."
+            }
+        )
+    user = crud_user.remove(db, id=id)
+    return user
 
 # ... (rest of the user routes)
